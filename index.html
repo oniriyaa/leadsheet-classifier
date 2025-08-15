@@ -1,0 +1,2991 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบจัดกลุ่ม Leadsheet สำหรับงบทดลอง</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Sarabun', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #5e72e4 0%, #825ee4 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+
+        .main-content {
+            padding: 30px;
+        }
+
+        .upload-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            border: 2px dashed #dee2e6;
+            transition: all 0.3s ease;
+        }
+
+        .upload-section:hover {
+            border-color: #5e72e4;
+            box-shadow: 0 5px 15px rgba(94, 114, 228, 0.1);
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            display: inline-block;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        .file-input-wrapper input[type="file"] {
+            position: absolute;
+            left: -9999px;
+        }
+
+        .file-input-label {
+            display: block;
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #5e72e4 0%, #825ee4 100%);
+            color: white;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 1.1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .file-input-label:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(94, 114, 228, 0.3);
+        }
+
+        .sample-format {
+            margin-top: 20px;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .sample-format h3 {
+            color: #5e72e4;
+            margin-bottom: 10px;
+        }
+
+        .sample-format pre {
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-size: 0.9rem;
+        }
+
+        .process-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #11cdef 0%, #1171ef 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+
+        .process-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(17, 205, 239, 0.3);
+        }
+
+        .process-btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .results-section {
+            margin-top: 30px;
+            display: none;
+        }
+
+        .results-section.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        thead {
+            background: linear-gradient(135deg, #5e72e4 0%, #825ee4 100%);
+            color: white;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        th {
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .editable-cell {
+            cursor: pointer;
+            position: relative;
+            transition: background-color 0.2s ease;
+        }
+
+        .editable-cell:hover {
+            background-color: #e8f4fd;
+        }
+
+        .editable-cell.editing {
+            padding: 0;
+        }
+
+        .cell-input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #5e72e4;
+            background: white;
+            font-size: inherit;
+            font-family: inherit;
+            outline: none;
+        }
+
+        .cell-select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #5e72e4;
+            background: white;
+            font-size: inherit;
+            font-family: inherit;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .edit-indicator {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            font-size: 0.8rem;
+            color: #5e72e4;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        .editable-cell:hover .edit-indicator {
+            opacity: 1;
+        }
+
+        .modified-row {
+            background-color: #fff3cd !important;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 5px;
+        }
+
+        .edit-btn, .save-btn, .cancel-btn, .delete-row-btn {
+            padding: 5px 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+        }
+
+        .edit-btn {
+            background: #17a2b8;
+            color: white;
+        }
+
+        .save-btn {
+            background: #28a745;
+            color: white;
+        }
+
+        .cancel-btn {
+            background: #6c757d;
+            color: white;
+        }
+
+        .delete-row-btn {
+            background: #dc3545;
+            color: white;
+        }
+
+        .edit-btn:hover, .save-btn:hover, .cancel-btn:hover, .delete-row-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        .bulk-edit-controls {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .bulk-edit-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .enable-edit-btn {
+            background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+            color: white;
+        }
+
+        .save-all-btn {
+            background: linear-gradient(135deg, #28a745 0%, #218838 100%);
+            color: white;
+        }
+
+        .cancel-all-btn {
+            background: linear-gradient(135deg, #6c757d 0%, #545b62 100%);
+            color: white;
+        }
+
+        .undo-btn {
+            background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
+            color: white;
+        }
+
+        .bulk-edit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .bulk-edit-btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .edit-status {
+            padding: 8px 15px;
+            background: #d1ecf1;
+            color: #0c5460;
+            border-radius: 8px;
+            font-weight: 500;
+        }
+
+        .changes-counter {
+            padding: 8px 15px;
+            background: #fff3cd;
+            color: #856404;
+            border-radius: 8px;
+            font-weight: 500;
+        }
+
+        .download-btn {
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #2dce89 0%, #11cdef 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-right: 10px;
+            margin-top: 20px;
+        }
+
+        .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(45, 206, 137, 0.3);
+        }
+
+        .stats-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .stat-card h4 {
+            color: #5e72e4;
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+        }
+
+        .stat-card .number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #333;
+        }
+
+        .custom-mapping-section {
+            margin-top: 20px;
+            padding: 20px;
+            background: linear-gradient(135deg, #89f7fe 0%, #66a6ff 100%);
+            border-radius: 15px;
+            color: white;
+        }
+
+        .custom-mapping-section h3 {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .mapping-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .save-mapping-btn, .load-mapping-btn, .export-mapping-btn, .clear-mapping-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .save-mapping-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .load-mapping-btn {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+        .export-mapping-btn {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+
+        .clear-mapping-btn {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            color: white;
+        }
+
+        .save-mapping-btn:hover, .load-mapping-btn:hover, 
+        .export-mapping-btn:hover, .clear-mapping-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .saved-mappings-list {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 15px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .mapping-item {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .mapping-item-info {
+            flex: 1;
+        }
+
+        .mapping-item-name {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .mapping-item-details {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .mapping-item-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .mapping-action-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+        }
+
+        .mapping-load-btn {
+            background: #28a745;
+            color: white;
+        }
+
+        .mapping-delete-btn {
+            background: #dc3545;
+            color: white;
+        }
+
+        .mapping-action-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 10000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal-content {
+            background: white;
+            margin: 10% auto;
+            padding: 30px;
+            border-radius: 15px;
+            width: 80%;
+            max-width: 500px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            margin-bottom: 20px;
+        }
+
+        .modal-header h2 {
+            color: #333;
+            margin: 0;
+        }
+
+        .modal-body {
+            margin-bottom: 20px;
+        }
+
+        .modal-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            margin-bottom: 10px;
+            transition: border-color 0.3s ease;
+        }
+
+        .modal-input:focus {
+            outline: none;
+            border-color: #5e72e4;
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .modal-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .modal-save-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .modal-cancel-btn {
+            background: #6c757d;
+            color: white;
+        }
+
+        .modal-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .import-mapping-input {
+            display: none;
+        }
+
+        .ai-copilot-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            color: white;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .ai-copilot-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .ai-copilot-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .auto-classify-btn {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .auto-classify-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(240, 147, 251, 0.3);
+        }
+
+        .auto-classify-btn.processing {
+            background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+            animation: pulse 1s infinite;
+        }
+
+        .copilot-status {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0;
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+        }
+
+        .status-label {
+            font-weight: 600;
+        }
+
+        .status-value {
+            font-weight: bold;
+            color: #11cdef;
+        }
+
+        .toggle-table-btn {
+            background: linear-gradient(135deg, #6c757d 0%, #545b62 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            margin: 10px 0;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .toggle-table-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .table-container {
+            transition: all 0.5s ease;
+            overflow: hidden;
+        }
+
+        .table-container.collapsed {
+            max-height: 0;
+            opacity: 0;
+            margin: 0;
+            padding: 0;
+        }
+
+        .table-container.expanded {
+            max-height: none;
+            opacity: 1;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 30px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 15px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #11cdef 0%, #1171ef 100%);
+            border-radius: 15px;
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .ai-helper-section {
+            margin-top: 30px;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 15px;
+            color: white;
+        }
+
+        .ai-helper-section h3 {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .unclassified-list {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px 0;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .unclassified-item {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 8px 12px;
+            border-radius: 5px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .ai-suggest-btn {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .ai-suggest-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(240, 147, 251, 0.3);
+        }
+
+        .ai-suggest-btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+
+        .ai-suggestion-result {
+            background: rgba(255, 255, 255, 0.95);
+            color: #333;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+
+        .suggestion-item {
+            display: grid;
+            grid-template-columns: 2fr 2fr 2fr 1fr 1fr;
+            gap: 10px;
+            padding: 10px;
+            border-bottom: 1px solid #e0e0e0;
+            align-items: center;
+        }
+
+        .suggestion-item:last-child {
+            border-bottom: none;
+        }
+
+        .suggestion-checkbox {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .suggestion-editable {
+            padding: 5px 8px;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            background: #f8f9fa;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .suggestion-editable:hover {
+            background: #e8f4fd;
+            border-color: #5e72e4;
+        }
+
+        .suggestion-editable.editing {
+            background: white;
+            border-color: #5e72e4;
+            border-width: 2px;
+        }
+
+        .refresh-data-btn {
+            background: linear-gradient(135deg, #00d2ff 0%, #3a47d5 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            margin-left: 10px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .refresh-data-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(58, 71, 213, 0.3);
+        }
+
+        .refresh-data-btn.spinning {
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .refresh-icon {
+            display: inline-block;
+            transition: transform 0.5s ease;
+        }
+
+        .refresh-data-btn:hover .refresh-icon {
+            transform: rotate(180deg);
+        }
+
+        .ai-action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .preview-changes-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .preview-changes-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(118, 75, 162, 0.3);
+        }
+
+        .changes-preview {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .change-item {
+            display: grid;
+            grid-template-columns: 1fr 2fr 1fr 2fr;
+            gap: 10px;
+            padding: 8px;
+            border-bottom: 1px solid #e0e0e0;
+            align-items: center;
+        }
+
+        .change-item:last-child {
+            border-bottom: none;
+        }
+
+        .old-value {
+            color: #dc3545;
+            text-decoration: line-through;
+        }
+
+        .new-value {
+            color: #28a745;
+            font-weight: 600;
+        }
+
+        .apply-suggestions-btn {
+            background: linear-gradient(135deg, #11cdef 0%, #1171ef 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            margin-top: 15px;
+            width: 100%;
+        }
+
+        .apply-selected-btn {
+            background: linear-gradient(135deg, #28a745 0%, #218838 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            margin-right: 10px;
+        }
+
+        .select-all-btn {
+            background: linear-gradient(135deg, #6c757d 0%, #545b62 100%);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+        }
+
+        .apply-suggestions-btn:hover, .apply-selected-btn:hover, .select-all-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(17, 205, 239, 0.3);
+        }
+
+        .manual-classification {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+
+        .manual-classification h4 {
+            margin-bottom: 10px;
+        }
+
+        .classification-form {
+            display: grid;
+            gap: 10px;
+        }
+
+        .form-group {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .form-group label {
+            font-weight: 600;
+        }
+
+        .form-group select {
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            background: white;
+            color: #333;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .loading {
+            animation: pulse 1s infinite;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            border: 1px solid #f5c6cb;
+        }
+
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            border: 1px solid #c3e6cb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 ระบบจัดกลุ่ม Leadsheet สำหรับงบทดลอง</h1>
+            <p>อัปโหลดข้อมูลบัญชีเพื่อจัดกลุ่มตามมาตรฐาน Leadsheet อัตโนมัติ</p>
+        </div>
+
+        <div class="main-content">
+            <div class="upload-section">
+                <h2>📁 อัปโหลดไฟล์ข้อมูลบัญชี</h2>
+                <p style="margin: 10px 0; color: #666;">รองรับไฟล์ CSV, Excel (.xlsx, .xls) หรือ Text file</p>
+                
+                <div class="file-input-wrapper">
+                    <input type="file" id="fileInput" accept=".csv,.xlsx,.xls,.txt">
+                    <label for="fileInput" class="file-input-label">
+                        คลิกเพื่อเลือกไฟล์ หรือลากไฟล์มาวางที่นี่
+                    </label>
+                    <!-- Custom Mapping Section -->
+                <div class="custom-mapping-section">
+                    <h3>
+                        <span>💾</span>
+                        <span>บันทึกและจัดการ Mapping ที่กำหนดเอง</span>
+                    </h3>
+                    
+                    <div class="mapping-controls">
+                        <button onclick="saveCurrentMapping()" class="save-mapping-btn">
+                            <span>💾</span>
+                            <span>บันทึก Mapping ปัจจุบัน</span>
+                        </button>
+                        <button onclick="document.getElementById('importMappingInput').click()" class="load-mapping-btn">
+                            <span>📂</span>
+                            <span>นำเข้า Mapping</span>
+                        </button>
+                        <input type="file" id="importMappingInput" class="import-mapping-input" accept=".json" onchange="importMapping(event)">
+                        <button onclick="exportAllMappings()" class="export-mapping-btn">
+                            <span>📤</span>
+                            <span>ส่งออก Mapping ทั้งหมด</span>
+                        </button>
+                        <button onclick="clearAllMappings()" class="clear-mapping-btn">
+                            <span>🗑️</span>
+                            <span>ล้าง Mapping ทั้งหมด</span>
+                        </button>
+                    </div>
+                    
+                    <div class="saved-mappings-list" id="savedMappingsList">
+                        <p style="opacity: 0.9;">ยังไม่มี Mapping ที่บันทึกไว้</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Save Mapping Modal -->
+            <div id="saveMappingModal" class="modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>💾 บันทึก Mapping</h2>
+                    </div>
+                    <div class="modal-body">
+                        <input type="text" id="mappingNameInput" class="modal-input" 
+                               placeholder="ตั้งชื่อ Mapping (เช่น บริษัท ABC, งบ Q1 2024)">
+                        <textarea id="mappingDescInput" class="modal-input" rows="3" 
+                                  placeholder="รายละเอียด (ไม่บังคับ)"></textarea>
+                    </div>
+                    <div class="modal-footer">
+                        <button onclick="closeSaveModal()" class="modal-btn modal-cancel-btn">ยกเลิก</button>
+                        <button onclick="confirmSaveMapping()" class="modal-btn modal-save-btn">บันทึก</button>
+                    </div>
+                </div>
+            </div>
+
+                <div class="sample-format">
+                    <h3>📝 รูปแบบข้อมูลที่รองรับ:</h3>
+                    <pre>รหัสบัญชี,ชื่อบัญชี,ยอดเดบิต,ยอดเครดิต
+1101,เงินสด,50000,0
+1102,เงินฝากธนาคาร,100000,0
+2101,เจ้าหนี้การค้า,0,75000
+
+หรือ (ไม่มีรหัสบัญชี - ระบบจะสร้างให้อัตโนมัติ)
+ชื่อบัญชี,ยอดเดบิต,ยอดเครดิต
+เงินสด,50000,0
+เงินฝากธนาคาร,100000,0
+เจ้าหนี้การค้า,0,75000</pre>
+                    <p style="margin-top: 10px; color: #666; font-size: 0.9rem;">
+                        * ระบบจะจับคู่อัตโนมัติตามชื่อบัญชีและรหัสบัญชี<br>
+                        * หากไม่มีรหัสบัญชี ระบบจะสร้างรหัสให้อัตโนมัติตามมาตรฐานการบัญชี
+                    </p>
+                </div>
+
+                <button id="processBtn" class="process-btn" disabled>
+                    🔄 ประมวลผลและจัดกลุ่ม
+                </button>
+            </div>
+
+            <div id="resultsSection" class="results-section">
+                <h2 style="margin-bottom: 20px;">📈 ผลการจัดกลุ่ม Leadsheet</h2>
+                
+                <div class="stats-cards" id="statsCards"></div>
+
+                <!-- AI Copilot Section -->
+                <div class="ai-copilot-section">
+                    <div class="ai-copilot-header">
+                        <div class="ai-copilot-title">
+                            <span>🤖</span>
+                            <span>AI Copilot - ผู้ช่วยจัดกลุ่มอัตโนมัติ</span>
+                        </div>
+                        <button id="autoClassifyBtn" onclick="autoClassifyAll()" class="auto-classify-btn">
+                            <span>✨</span>
+                            <span>จัดกลุ่มอัตโนมัติทั้งหมด</span>
+                        </button>
+                    </div>
+                    
+                    <div class="copilot-status">
+                        <div class="status-item">
+                            <span class="status-label">📊 บัญชีทั้งหมด:</span>
+                            <span class="status-value" id="totalAccountsStatus">0</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-label">✅ จัดกลุ่มแล้ว:</span>
+                            <span class="status-value" id="classifiedStatus">0</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-label">⚠️ ยังไม่จัดกลุ่ม:</span>
+                            <span class="status-value" id="unclassifiedStatus">0</span>
+                        </div>
+                    </div>
+                    
+                    <div class="progress-bar" id="progressBar" style="display: none;">
+                        <div class="progress-fill" id="progressFill" style="width: 0%;">0%</div>
+                    </div>
+                </div>
+
+                <div style="margin: 20px 0;">
+                    <button onclick="toggleTable()" class="toggle-table-btn">
+                        <span id="toggleIcon">👁️</span>
+                        <span id="toggleText">ซ่อนตาราง</span>
+                    </button>
+                    <button onclick="downloadCSV()" class="download-btn">
+                        💾 ดาวน์โหลด CSV
+                    </button>
+                    <button onclick="downloadExcel()" class="download-btn" style="background: linear-gradient(135deg, #f5365c 0%, #f56036 100%);">
+                        📊 ดาวน์โหลด Excel
+                    </button>
+                    <button onclick="forceRefreshTable()" class="refresh-data-btn">
+                        <span class="refresh-icon">🔄</span> 
+                        <span>รีเฟรชตาราง</span>
+                    </button>
+                </div>
+
+                <!-- Bulk Edit Controls -->
+                <div class="bulk-edit-controls" id="bulkEditControls">
+                    <button id="enableEditBtn" onclick="toggleEditMode()" class="bulk-edit-btn enable-edit-btn">
+                        ✏️ เปิดโหมดแก้ไข
+                    </button>
+                    <button id="saveAllBtn" onclick="saveAllChanges()" class="bulk-edit-btn save-all-btn" style="display: none;">
+                        💾 บันทึกการแก้ไขทั้งหมด
+                    </button>
+                    <button id="cancelAllBtn" onclick="cancelAllChanges()" class="bulk-edit-btn cancel-all-btn" style="display: none;">
+                        ❌ ยกเลิกการแก้ไข
+                    </button>
+                    <button id="undoBtn" onclick="undoLastChange()" class="bulk-edit-btn undo-btn" style="display: none;">
+                        ↩️ ย้อนกลับ
+                    </button>
+                    <span id="editStatus" class="edit-status" style="display: none;">
+                        📝 โหมดแก้ไข: เปิด
+                    </span>
+                    <span id="changesCounter" class="changes-counter" style="display: none;">
+                        มีการแก้ไข: 0 รายการ
+                    </span>
+                </div>
+
+                <div class="table-container expanded" id="tableContainer">
+                    <div style="overflow-x: auto;">
+                        <table id="resultsTable">
+                            <thead>
+                                <tr>
+                                    <th style="width: 50px;">แก้ไข</th>
+                                    <th>รหัสบัญชี</th>
+                                    <th>ชื่อบัญชี</th>
+                                    <th>Leadsheet Group</th>
+                                    <th>LS Sub Group Name</th>
+                                    <th>ยอดเดบิต</th>
+                                    <th>ยอดเครดิต</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- AI Helper Section -->
+                <div id="aiHelperSection" class="ai-helper-section" style="display: none;">
+                    <h3>
+                        <span>🤖</span>
+                        <span>AI Assistant - ช่วยจัดกลุ่มบัญชีที่ไม่สามารถระบุได้</span>
+                    </h3>
+                    
+                    <div id="unclassifiedList" class="unclassified-list"></div>
+                    
+                    <button id="aiSuggestBtn" class="ai-suggest-btn" onclick="getAISuggestions()">
+                        <span>✨</span>
+                        <span>ขอคำแนะนำจาก AI</span>
+                    </button>
+                    
+                    <div id="aiSuggestionResult" class="ai-suggestion-result" style="display: none;"></div>
+
+                    <!-- Manual Classification -->
+                    <div class="manual-classification">
+                        <h4>📝 จัดกลุ่มด้วยตนเอง</h4>
+                        <div class="classification-form">
+                            <div class="form-group">
+                                <label>เลือกบัญชี:</label>
+                                <select id="manualAccountSelect">
+                                    <option value="">-- เลือกบัญชี --</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Leadsheet Group:</label>
+                                <select id="manualGroupSelect" onchange="updateSubGroupOptions()">
+                                    <option value="">-- เลือกกลุ่ม --</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Sub Group:</label>
+                                <select id="manualSubGroupSelect">
+                                    <option value="">-- เลือกกลุ่มย่อย --</option>
+                                </select>
+                            </div>
+                            <button onclick="applyManualClassification()" class="apply-suggestions-btn">
+                                ✅ บันทึกการจัดกลุ่ม
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script>
+        // Account code generation mapping
+        const accountCodeMapping = {
+            // สินทรัพย์ (1000s)
+            'เงินสด': '1101',
+            'เงินฝากกระแสรายวัน': '1102',
+            'เงินฝากออมทรัพย์': '1103',
+            'เงินฝากประจำ': '1104',
+            'เงินลงทุนในพันธบัตร': '1201',
+            'เงินลงทุนในตั๋วแลกเงิน': '1202',
+            'เงินฝากประจำที่อายุมากกว่า 3 เดือน': '1203',
+            'เงินลงทุนในหลักทรัพย์เพื่อค้า': '1204',
+            'เงินลงทุนในหลักทรัพย์เผื่อขาย (ระยะสั้น)': '1205',
+            'ลูกหนี้การค้า': '1301',
+            'ค่าเผื่อหนี้สงสัยจะสูญ - ลูกหนี้การค้า': '1302',
+            'ลูกหนี้อื่น': '1303',
+            'วัตถุดิบ': '1401',
+            'งานระหว่างทำ': '1402',
+            'สินค้าสำเร็จรูป': '1403',
+            'วัสดุคงเหลือ': '1404',
+            'ค่าเผื่อการลดลงของมูลค่าสินค้าคงเหลือ': '1405',
+            'ค่าใช้จ่ายจ่ายล่วงหน้า': '1501',
+            'สินทรัพย์หมุนเวียนอื่น ๆ': '1599',
+            'ที่ดิน อาคาร อุปกรณ์ - ราคาทุน': '1601',
+            'ค่าเสื่อมราคาสะสม': '1602',
+            'สินทรัพย์ไม่มีตัวตน - ราคาทุน': '1701',
+            'ค่าตัดจำหน่ายสะสม': '1702',
+            
+            // หนี้สิน (2000s)
+            'เงินเบิกเกินบัญชี': '2101',
+            'เจ้าหนี้ตั๋วสัญญาใช้เงิน': '2102',
+            'เจ้าหนี้การค้า': '2201',
+            'เจ้าหนี้อื่น': '2202',
+            'ค่าใช้จ่ายค้างจ่าย': '2301',
+            'เงินเดือนค้างจ่าย': '2302',
+            'ภาษีค้างจ่าย': '2303',
+            'หนี้สินหมุนเวียนอื่นๆ': '2399',
+            'เงินกู้ยืมระยะยาวจากสถาบันการเงิน': '2401',
+            'หนี้สินตามสัญญาเช่าเงินทุน': '2501',
+            'สำรองผลประโยชน์ระยะยาวของพนักงาน': '2601',
+            
+            // ส่วนของผู้ถือหุ้น (3000s)
+            'หุ้นสามัญ': '3101',
+            'หุ้นบุริมสิทธิ': '3102',
+            'ส่วนเกินมูลค่าหุ้นสามัญ': '3201',
+            'ส่วนเกินมูลค่าหุ้นบุริมสิทธิ': '3202',
+            'สำรองตามกฎหมาย': '3301',
+            'สำรองอื่น ๆ': '3302',
+            'ยังไม่จัดสรร': '3401',
+            
+            // รายได้ (4000s)
+            'รายได้จากการขายในประเทศ': '4101',
+            'รายได้จากการขายต่างประเทศ': '4102',
+            'รายได้จากการให้บริการในประเทศ': '4201',
+            'รายได้จากการให้บริการต่างประเทศ': '4202',
+            'รายได้อื่น': '4901',
+            'ดอกเบี้ยเงินฝาก': '4902',
+            'กำไรจากเงินลงทุน': '4903',
+            
+            // ค่าใช้จ่าย (5000s)
+            'ต้นทุนขายในประเทศ': '5101',
+            'ต้นทุนขายต่างประเทศ': '5102',
+            'ต้นทุนค่าลิขสิทธิ์': '5201',
+            'ต้นทุนระบบเครือข่าย': '5202',
+            'ต้นทุนบริการอื่น ๆ': '5203',
+            'เงินเดือน ค่าจ้าง ค่าล่วงเวลา': '5301',
+            'โบนัส': '5302',
+            'สวัสดิการอื่น': '5303',
+            'ค่าตอบแทนกรรมการ': '5304',
+            'ค่าส่งเสริมการขาย': '5401',
+            'สวัสดิการแผนกขาย': '5402',
+            'ค่าเดินทางดูงาน': '5403',
+            'ค่าใช้จ่ายในการขายอื่น ๆ': '5499',
+            'ค่าใช้จ่ายสำนักงาน': '5501',
+            'ค่าสาธารณูปโภค': '5502',
+            'ค่าเสื่อมราคา - สำนักงาน': '5503',
+            'ค่าซ่อมแซม': '5504',
+            'ค่าธรรมเนียม': '5505',
+            'ค่าใช้จ่ายอื่น': '5599',
+            'ดอกเบี้ยเงินกู้ยืมระยะสั้น': '5601',
+            'ดอกเบี้ยเช่าซื้อ': '5602',
+            'ดอกเบี้ยเงินกู้ยืมระยะยาว': '5603',
+            'ภาษีเงินได้ปัจจุบัน': '5701',
+            'ภาษีเงินได้รอการตัดบัญชี': '5702'
+        };
+
+        // Counter for generating unique codes - Initialize properly
+        let codeCounters = {
+            '1': 1800, // สินทรัพย์อื่นๆ
+            '2': 2700, // หนี้สินอื่นๆ
+            '3': 3500, // ส่วนของผู้ถือหุ้นอื่นๆ
+            '4': 4500, // รายได้อื่นๆ
+            '5': 5800, // ค่าใช้จ่ายอื่นๆ
+            '9': 9000  // อื่นๆ
+        };
+
+        // Leadsheet mapping database
+        const leadsheetMappings = {
+            'เงินสดและเงินฝากธนาคาร': {
+                keywords: ['เงินสด', 'เงินฝาก', 'ธนาคาร', 'cash', 'bank', 'deposit'],
+                defaultCode: '1100',
+                subGroups: {
+                    'เงินสด': ['เงินสด', 'เงินสดย่อย', 'cash on hand', 'petty cash'],
+                    'เงินฝากกระแสรายวัน': ['กระแสรายวัน', 'current account', 'checking'],
+                    'เงินฝากออมทรัพย์': ['ออมทรัพย์', 'saving', 'savings account'],
+                    'เงินฝากประจำ': ['ประจำ', 'fixed deposit', 'time deposit']
+                }
+            },
+            'เงินลงทุนระยะสั้น': {
+                keywords: ['เงินลงทุน', 'หลักทรัพย์', 'พันธบัตร', 'ตั๋วแลกเงิน', 'investment', 'securities'],
+                subGroups: {
+                    'เงินลงทุนในพันธบัตร': ['พันธบัตร', 'bond', 'government bond'],
+                    'เงินลงทุนในตั๋วแลกเงิน': ['ตั๋วแลกเงิน', 'bill of exchange', 'promissory note'],
+                    'เงินฝากประจำที่อายุมากกว่า 3 เดือน': ['ฝากประจำ', 'มากกว่า 3 เดือน'],
+                    'เงินลงทุนในหลักทรัพย์เพื่อค้า': ['หลักทรัพย์เพื่อค้า', 'trading securities'],
+                    'เงินลงทุนในหลักทรัพย์เผื่อขาย (ระยะสั้น)': ['หลักทรัพย์เผื่อขาย', 'available for sale']
+                }
+            },
+            'ลูกหนี้การค้า': {
+                keywords: ['ลูกหนี้', 'receivable', 'debtor', 'ค่าเผื่อหนี้สงสัย'],
+                subGroups: {
+                    'ลูกหนี้การค้า': ['ลูกหนี้การค้า', 'trade receivable', 'account receivable'],
+                    'ค่าเผื่อหนี้สงสัยจะสูญ - ลูกหนี้การค้า': ['ค่าเผื่อหนี้สงสัย', 'allowance', 'bad debt'],
+                    'ลูกหนี้อื่น': ['ลูกหนี้อื่น', 'other receivable']
+                }
+            },
+            'สินค้าคงเหลือ': {
+                keywords: ['สินค้า', 'วัตถุดิบ', 'inventory', 'stock', 'งานระหว่างทำ'],
+                subGroups: {
+                    'วัตถุดิบ': ['วัตถุดิบ', 'raw material'],
+                    'งานระหว่างทำ': ['งานระหว่างทำ', 'work in process', 'WIP'],
+                    'สินค้าสำเร็จรูป': ['สินค้าสำเร็จรูป', 'finished goods'],
+                    'วัสดุคงเหลือ': ['วัสดุ', 'supplies', 'material'],
+                    'ค่าเผื่อการลดลงของมูลค่าสินค้าคงเหลือ': ['ค่าเผื่อการลดลง', 'allowance inventory']
+                }
+            },
+            'ที่ดิน อาคาร และอุปกรณ์': {
+                keywords: ['ที่ดิน', 'อาคาร', 'อุปกรณ์', 'property', 'plant', 'equipment', 'PPE'],
+                subGroups: {
+                    'ที่ดิน อาคาร อุปกรณ์ - ราคาทุน': ['ที่ดิน', 'อาคาร', 'อุปกรณ์', 'ยานพาหนะ', 'เครื่องจักร'],
+                    'ค่าเสื่อมราคาสะสม': ['ค่าเสื่อมราคา', 'accumulated depreciation'],
+                    'ส่วนเพิ่มจากการวัดมูลค่ายุติธรรมที่ดิน อาคาร และอุปกรณ์': ['ส่วนเพิ่มจากการตีราคา', 'revaluation'],
+                    'ค่าเผื่อการด้อยค่าของที่ดิน อาคาร และอุปกรณ์': ['ค่าเผื่อการด้อยค่า', 'impairment']
+                }
+            },
+            'เจ้าหนี้การค้า': {
+                keywords: ['เจ้าหนี้', 'payable', 'creditor'],
+                subGroups: {
+                    'เจ้าหนี้การค้า': ['เจ้าหนี้การค้า', 'trade payable', 'account payable'],
+                    'เจ้าหนี้อื่น': ['เจ้าหนี้อื่น', 'other payable']
+                }
+            },
+            'เงินกู้ยืมระยะสั้น': {
+                keywords: ['เงินกู้', 'เบิกเกินบัญชี', 'loan', 'overdraft', 'ตั๋วสัญญาใช้เงิน'],
+                subGroups: {
+                    'เงินเบิกเกินบัญชี': ['เบิกเกินบัญชี', 'overdraft', 'OD'],
+                    'เจ้าหนี้ตั๋วสัญญาใช้เงิน': ['ตั๋วสัญญาใช้เงิน', 'promissory note', 'P/N']
+                }
+            },
+            'ทุนชำระแล้ว': {
+                keywords: ['ทุน', 'หุ้น', 'capital', 'share', 'stock'],
+                subGroups: {
+                    'หุ้นสามัญ': ['หุ้นสามัญ', 'common stock', 'ordinary share'],
+                    'หุ้นบุริมสิทธิ': ['หุ้นบุริมสิทธิ', 'preferred stock', 'preference share']
+                }
+            },
+            'กำไรสะสม - จัดสรรแล้ว': {
+                keywords: ['สำรอง', 'reserve', 'appropriated'],
+                subGroups: {
+                    'สำรองตามกฎหมาย': ['สำรองตามกฎหมาย', 'legal reserve'],
+                    'สำรองอื่น ๆ': ['สำรองอื่น', 'other reserve']
+                }
+            },
+            'กำไรสะสม - ยังไม่จัดสรร': {
+                keywords: ['กำไรสะสม', 'retained earnings', 'ยังไม่จัดสรร'],
+                subGroups: {
+                    'ยังไม่จัดสรร': ['กำไรสะสม', 'retained earnings', 'ยังไม่จัดสรร', 'unappropriated']
+                }
+            },
+            'รายได้จากการขาย': {
+                keywords: ['รายได้', 'ขาย', 'revenue', 'sales', 'income'],
+                subGroups: {
+                    'รายได้จากการขายในประเทศ': ['ขายในประเทศ', 'domestic sales', 'local sales'],
+                    'รายได้จากการขายต่างประเทศ': ['ขายต่างประเทศ', 'export', 'foreign sales']
+                }
+            },
+            'ต้นทุนขาย': {
+                keywords: ['ต้นทุนขาย', 'cost of goods sold', 'COGS', 'cost of sales'],
+                subGroups: {
+                    'ต้นทุนขายในประเทศ': ['ต้นทุนขายในประเทศ', 'domestic COGS'],
+                    'ต้นทุนขายต่างประเทศ': ['ต้นทุนขายต่างประเทศ', 'export COGS']
+                }
+            },
+            'ค่าใช้จ่ายในการขาย': {
+                keywords: ['ค่าใช้จ่ายขาย', 'selling expense', 'ส่งเสริมการขาย', 'marketing'],
+                subGroups: {
+                    'ค่าส่งเสริมการขาย': ['ส่งเสริมการขาย', 'promotion', 'advertising'],
+                    'สวัสดิการแผนกขาย': ['สวัสดิการขาย', 'sales welfare'],
+                    'ค่าเดินทางดูงาน': ['เดินทาง', 'travel', 'business trip'],
+                    'ค่าใช้จ่ายในการขายอื่น ๆ': ['ค่าใช้จ่ายขายอื่น', 'other selling expense']
+                }
+            },
+            'ค่าใช้จ่ายในการบริหาร': {
+                keywords: ['ค่าใช้จ่ายบริหาร', 'administrative', 'สำนักงาน', 'office'],
+                subGroups: {
+                    'ค่าใช้จ่ายสำนักงาน': ['สำนักงาน', 'office expense'],
+                    'ค่าสาธารณูปโภค': ['สาธารณูปโภค', 'utilities', 'ไฟฟ้า', 'น้ำประปา'],
+                    'ค่าเสื่อมราคา - สำนักงาน': ['เสื่อมราคาสำนักงาน', 'office depreciation'],
+                    'ค่าซ่อมแซม': ['ซ่อมแซม', 'repair', 'maintenance'],
+                    'ค่าธรรมเนียม': ['ธรรมเนียม', 'fee', 'charge'],
+                    'ค่าใช้จ่ายอื่น': ['ค่าใช้จ่ายอื่น', 'other expense']
+                }
+            },
+            'ภาษีเงินได้': {
+                keywords: ['ภาษีเงินได้', 'income tax', 'tax expense'],
+                subGroups: {
+                    'ภาษีเงินได้ปัจจุบัน': ['ภาษีเงินได้ปัจจุบัน', 'current tax'],
+                    'ภาษีเงินได้รอการตัดบัญชี': ['ภาษีรอตัด', 'deferred tax']
+                }
+            }
+        };
+
+        let uploadedData = [];
+        let processedData = [];
+        let originalData = [];
+        let unclassifiedAccounts = [];
+        let aiSuggestions = {};
+        let customMappings = {};
+        let savedMappings = [];
+        let editMode = false;
+        let modifiedRows = new Set();
+        let changeHistory = [];
+        let tableVisible = true;
+
+        // Load saved mappings from localStorage on page load
+        window.addEventListener('DOMContentLoaded', function() {
+            loadSavedMappings();
+        });
+
+        function toggleTable() {
+            const tableContainer = document.getElementById('tableContainer');
+            const toggleIcon = document.getElementById('toggleIcon');
+            const toggleText = document.getElementById('toggleText');
+            
+            tableVisible = !tableVisible;
+            
+            if (tableVisible) {
+                tableContainer.classList.remove('collapsed');
+                tableContainer.classList.add('expanded');
+                toggleIcon.textContent = '👁️';
+                toggleText.textContent = 'ซ่อนตาราง';
+            } else {
+                tableContainer.classList.add('collapsed');
+                tableContainer.classList.remove('expanded');
+                toggleIcon.textContent = '👁️‍🗨️';
+                toggleText.textContent = 'แสดงตาราง';
+            }
+        }
+
+        function autoClassifyAll() {
+            const btn = document.getElementById('autoClassifyBtn');
+            const progressBar = document.getElementById('progressBar');
+            const progressFill = document.getElementById('progressFill');
+            
+            // Show processing state
+            btn.classList.add('processing');
+            btn.innerHTML = '<span>⏳</span><span>กำลังประมวลผล...</span>';
+            btn.disabled = true;
+            progressBar.style.display = 'block';
+            
+            let classified = 0;
+            let total = processedData.length;
+            let updates = 0;
+            
+            // Process each item
+            processedData.forEach((item, index) => {
+                // Skip if already classified properly
+                if (item.leadsheetGroup !== 'อื่นๆ' && item.subGroup !== 'ไม่ระบุ') {
+                    classified++;
+                    return;
+                }
+                
+                // Try to classify using AI logic
+                const name = item.accountName.toLowerCase();
+                const code = item.accountCode;
+                let newGroup = item.leadsheetGroup;
+                let newSubGroup = item.subGroup;
+                
+                // Enhanced AI classification logic
+                if (name.includes('เงินสด') || name.includes('cash')) {
+                    newGroup = 'เงินสดและเงินฝากธนาคาร';
+                    newSubGroup = 'เงินสด';
+                } else if (name.includes('เงินฝาก') || name.includes('ธนาคาร')) {
+                    newGroup = 'เงินสดและเงินฝากธนาคาร';
+                    newSubGroup = 'เงินฝากออมทรัพย์';
+                } else if (name.includes('ลูกหนี้')) {
+                    newGroup = 'ลูกหนี้การค้า';
+                    newSubGroup = 'ลูกหนี้การค้า';
+                } else if (name.includes('เจ้าหนี้')) {
+                    newGroup = 'เจ้าหนี้การค้า';
+                    newSubGroup = 'เจ้าหนี้การค้า';
+                } else if (name.includes('สินค้า') || name.includes('inventory')) {
+                    newGroup = 'สินค้าคงเหลือ';
+                    newSubGroup = 'สินค้าสำเร็จรูป';
+                } else if (name.includes('ค่าประกัน') || name.includes('ประกันภัย')) {
+                    newGroup = 'สินทรัพย์หมุนเวียนอื่น';
+                    newSubGroup = 'ค่าใช้จ่ายจ่ายล่วงหน้า';
+                } else if (name.includes('ภาษี')) {
+                    if (name.includes('เจ้าหนี้') || name.includes('ขาย')) {
+                        newGroup = 'หนี้สินหมุนเวียนอื่น';
+                        newSubGroup = 'ภาษีค้างจ่าย';
+                    } else {
+                        newGroup = 'สินทรัพย์หมุนเวียนอื่น';
+                        newSubGroup = 'สินทรัพย์หมุนเวียนอื่น ๆ';
+                    }
+                } else if (name.includes('ค่าน้ำ') || name.includes('ค่าไฟ') || name.includes('สาธารณูปโภค')) {
+                    newGroup = 'ค่าใช้จ่ายในการบริหาร';
+                    newSubGroup = 'ค่าสาธารณูปโภค';
+                } else if (name.includes('เงินเดือน') || name.includes('ค่าจ้าง')) {
+                    newGroup = 'เงินเดือน';
+                    newSubGroup = 'เงินเดือน ค่าจ้าง ค่าล่วงเวลา';
+                } else if (name.includes('ค่าเช่า')) {
+                    newGroup = 'ค่าใช้จ่ายในการบริหาร';
+                    newSubGroup = 'ค่าใช้จ่ายสำนักงาน';
+                } else if (name.includes('ดอกเบี้ย')) {
+                    if (item.debit > 0) {
+                        newGroup = 'ค่าใช้จ่ายการเงิน';
+                        newSubGroup = 'ดอกเบี้ยเงินกู้ยืมระยะสั้น';
+                    } else {
+                        newGroup = 'รายได้ทางการเงิน';
+                        newSubGroup = 'ดอกเบี้ยเงินฝาก';
+                    }
+                } else if (name.includes('ส่วนลด')) {
+                    newGroup = 'ค่าใช้จ่ายในการขาย';
+                    newSubGroup = 'ค่าใช้จ่ายในการขายอื่น ๆ';
+                } else if (name.includes('รายได้')) {
+                    newGroup = 'รายได้อื่น';
+                    newSubGroup = 'รายได้อื่น';
+                } else if (name.includes('ทุน') || name.includes('หุ้น')) {
+                    newGroup = 'ทุนชำระแล้ว';
+                    newSubGroup = 'หุ้นสามัญ';
+                } else if (name.includes('กำไร')) {
+                    newGroup = 'กำไรสะสม - ยังไม่จัดสรร';
+                    newSubGroup = 'ยังไม่จัดสรร';
+                } else {
+                    // Use code pattern if name doesn't match
+                    if (code.startsWith('1') || code.startsWith('99')) {
+                        newGroup = 'สินทรัพย์หมุนเวียนอื่น';
+                        newSubGroup = 'สินทรัพย์หมุนเวียนอื่น ๆ';
+                    } else if (code.startsWith('2')) {
+                        newGroup = 'หนี้สินหมุนเวียนอื่น';
+                        newSubGroup = 'หนี้สินหมุนเวียนอื่นๆ';
+                    } else if (code.startsWith('3')) {
+                        newGroup = 'ทุนชำระแล้ว';
+                        newSubGroup = 'หุ้นสามัญ';
+                    } else if (code.startsWith('4')) {
+                        newGroup = 'รายได้อื่น';
+                        newSubGroup = 'รายได้อื่น';
+                    } else if (code.startsWith('5')) {
+                        newGroup = 'ค่าใช้จ่ายในการบริหาร';
+                        newSubGroup = 'ค่าใช้จ่ายอื่น';
+                    }
+                }
+                
+                // Update if changed
+                if (newGroup !== item.leadsheetGroup || newSubGroup !== item.subGroup) {
+                    processedData[index].leadsheetGroup = newGroup;
+                    processedData[index].subGroup = newSubGroup;
+                    updates++;
+                    
+                    // Save to custom mappings
+                    const accountName = item.accountName.toLowerCase();
+                    customMappings[accountName] = {
+                        leadsheetGroup: newGroup,
+                        subGroup: newSubGroup
+                    };
+                }
+                
+                classified++;
+                
+                // Update progress
+                const progress = Math.round((classified / total) * 100);
+                progressFill.style.width = progress + '%';
+                progressFill.textContent = progress + '%';
+            });
+            
+            // Complete processing
+            setTimeout(() => {
+                // Update unclassified list
+                unclassifiedAccounts = [];
+                processedData.forEach(item => {
+                    if (item.leadsheetGroup === 'อื่นๆ' || item.subGroup === 'ไม่ระบุ') {
+                        unclassifiedAccounts.push(item);
+                    }
+                });
+                
+                // Refresh display
+                displayResults();
+                
+                // Reset button
+                btn.classList.remove('processing');
+                btn.innerHTML = '<span>✨</span><span>จัดกลุ่มอัตโนมัติทั้งหมด</span>';
+                btn.disabled = false;
+                
+                // Hide progress after 2 seconds
+                setTimeout(() => {
+                    progressBar.style.display = 'none';
+                    progressFill.style.width = '0%';
+                }, 2000);
+                
+                // Show success message
+                showMessage(`✅ AI Copilot จัดกลุ่มสำเร็จ!\n\nอัปเดต ${updates} รายการ\nจัดกลุ่มครบ ${classified} จาก ${total} รายการ`, 'success');
+            }, 1500);
+        }
+
+        function updateCopilotStatus() {
+            const totalAccounts = processedData.length;
+            const classifiedAccounts = processedData.filter(item => 
+                item.leadsheetGroup !== 'อื่นๆ' && item.subGroup !== 'ไม่ระบุ'
+            ).length;
+            const unclassifiedCount = totalAccounts - classifiedAccounts;
+            
+            document.getElementById('totalAccountsStatus').textContent = totalAccounts;
+            document.getElementById('classifiedStatus').textContent = classifiedAccounts;
+            document.getElementById('unclassifiedStatus').textContent = unclassifiedCount;
+        }
+
+        function toggleEditMode() {
+            editMode = !editMode;
+            const enableBtn = document.getElementById('enableEditBtn');
+            const saveBtn = document.getElementById('saveAllBtn');
+            const cancelBtn = document.getElementById('cancelAllBtn');
+            const undoBtn = document.getElementById('undoBtn');
+            const editStatus = document.getElementById('editStatus');
+            const changesCounter = document.getElementById('changesCounter');
+            
+            if (editMode) {
+                // Save original data for cancel functionality
+                originalData = JSON.parse(JSON.stringify(processedData));
+                
+                enableBtn.style.display = 'none';
+                saveBtn.style.display = 'inline-flex';
+                cancelBtn.style.display = 'inline-flex';
+                if (changeHistory.length > 0) {
+                    undoBtn.style.display = 'inline-flex';
+                }
+                editStatus.style.display = 'inline-block';
+                changesCounter.style.display = 'inline-block';
+                
+                // Re-render table with edit capabilities
+                displayResults();
+                showMessage('✏️ โหมดแก้ไขเปิดแล้ว - คลิกที่เซลล์เพื่อแก้ไข', 'success');
+            } else {
+                enableBtn.style.display = 'inline-flex';
+                saveBtn.style.display = 'none';
+                cancelBtn.style.display = 'none';
+                undoBtn.style.display = 'none';
+                editStatus.style.display = 'none';
+                changesCounter.style.display = 'none';
+                
+                // Re-render table without edit capabilities
+                displayResults();
+            }
+        }
+
+        function saveAllChanges() {
+            if (modifiedRows.size === 0) {
+                showMessage('❌ ไม่มีการแก้ไขที่ต้องบันทึก', 'error');
+                return;
+            }
+            
+            // Save changes
+            originalData = JSON.parse(JSON.stringify(processedData));
+            modifiedRows.clear();
+            changeHistory = [];
+            editMode = false;
+            
+            // Update UI
+            toggleEditMode();
+            showMessage(`✅ บันทึกการแก้ไข ${modifiedRows.size} รายการเรียบร้อยแล้ว`, 'success');
+        }
+
+        function cancelAllChanges() {
+            if (modifiedRows.size > 0) {
+                if (!confirm(`คุณมีการแก้ไข ${modifiedRows.size} รายการที่ยังไม่บันทึก ต้องการยกเลิกหรือไม่?`)) {
+                    return;
+                }
+            }
+            
+            // Restore original data
+            processedData = JSON.parse(JSON.stringify(originalData));
+            modifiedRows.clear();
+            changeHistory = [];
+            editMode = false;
+            
+            // Update UI
+            toggleEditMode();
+            showMessage('↩️ ยกเลิกการแก้ไขทั้งหมดแล้ว', 'success');
+        }
+
+        function undoLastChange() {
+            if (changeHistory.length === 0) return;
+            
+            const lastChange = changeHistory.pop();
+            const index = processedData.findIndex(item => 
+                item.accountCode === lastChange.accountCode
+            );
+            
+            if (index !== -1) {
+                processedData[index] = lastChange.oldValue;
+                modifiedRows.delete(index);
+                displayResults();
+                updateChangesCounter();
+                
+                if (changeHistory.length === 0) {
+                    document.getElementById('undoBtn').style.display = 'none';
+                }
+                
+                showMessage('↩️ ย้อนกลับการแก้ไข 1 รายการ', 'success');
+            }
+        }
+
+        function updateChangesCounter() {
+            const counter = document.getElementById('changesCounter');
+            if (counter) {
+                counter.textContent = `มีการแก้ไข: ${modifiedRows.size} รายการ`;
+            }
+        }
+
+        function makeEditable(cell, rowIndex, field) {
+            if (!editMode) return;
+            
+            const currentValue = processedData[rowIndex][field];
+            
+            if (field === 'leadsheetGroup' || field === 'subGroup') {
+                // Create select dropdown for group fields
+                const select = document.createElement('select');
+                select.className = 'cell-select';
+                
+                if (field === 'leadsheetGroup') {
+                    select.innerHTML = '<option value="">-- เลือกกลุ่ม --</option>';
+                    Object.keys(leadsheetMappings).forEach(group => {
+                        const option = document.createElement('option');
+                        option.value = group;
+                        option.textContent = group;
+                        if (group === currentValue) option.selected = true;
+                        select.appendChild(option);
+                    });
+                    
+                    select.onchange = function() {
+                        // Update subgroup options when group changes
+                        const subGroupCell = cell.parentElement.cells[5];
+                        updateSubGroupCell(subGroupCell, rowIndex, select.value);
+                    };
+                } else if (field === 'subGroup') {
+                    const currentGroup = processedData[rowIndex].leadsheetGroup;
+                    if (currentGroup && leadsheetMappings[currentGroup]) {
+                        Object.keys(leadsheetMappings[currentGroup].subGroups).forEach(subGroup => {
+                            const option = document.createElement('option');
+                            option.value = subGroup;
+                            option.textContent = subGroup;
+                            if (subGroup === currentValue) option.selected = true;
+                            select.appendChild(option);
+                        });
+                    }
+                }
+                
+                select.onblur = function() {
+                    saveCell(cell, rowIndex, field, select.value);
+                };
+                
+                cell.innerHTML = '';
+                cell.appendChild(select);
+                select.focus();
+            } else {
+                // Create input for other fields
+                const input = document.createElement('input');
+                input.type = field === 'debit' || field === 'credit' ? 'number' : 'text';
+                input.className = 'cell-input';
+                input.value = currentValue;
+                
+                input.onblur = function() {
+                    const newValue = field === 'debit' || field === 'credit' 
+                        ? parseFloat(input.value) || 0 
+                        : input.value;
+                    saveCell(cell, rowIndex, field, newValue);
+                };
+                
+                input.onkeypress = function(e) {
+                    if (e.key === 'Enter') {
+                        input.blur();
+                    }
+                };
+                
+                cell.innerHTML = '';
+                cell.appendChild(input);
+                input.focus();
+                input.select();
+            }
+        }
+
+        function updateSubGroupCell(cell, rowIndex, newGroup) {
+            if (!newGroup || !leadsheetMappings[newGroup]) return;
+            
+            const select = document.createElement('select');
+            select.className = 'cell-select';
+            
+            Object.keys(leadsheetMappings[newGroup].subGroups).forEach((subGroup, index) => {
+                const option = document.createElement('option');
+                option.value = subGroup;
+                option.textContent = subGroup;
+                if (index === 0) option.selected = true;
+                select.appendChild(option);
+            });
+            
+            select.onblur = function() {
+                saveCell(cell, rowIndex, 'subGroup', select.value);
+            };
+            
+            cell.innerHTML = '';
+            cell.appendChild(select);
+            
+            // Auto-save the first subgroup
+            processedData[rowIndex].subGroup = Object.keys(leadsheetMappings[newGroup].subGroups)[0];
+        }
+
+        function saveCell(cell, rowIndex, field, newValue) {
+            const oldValue = processedData[rowIndex][field];
+            
+            if (oldValue !== newValue) {
+                // Save to history for undo
+                if (!modifiedRows.has(rowIndex)) {
+                    changeHistory.push({
+                        accountCode: processedData[rowIndex].accountCode,
+                        oldValue: JSON.parse(JSON.stringify(processedData[rowIndex]))
+                    });
+                }
+                
+                // Update data
+                processedData[rowIndex][field] = newValue;
+                modifiedRows.add(rowIndex);
+                
+                // Update UI
+                cell.parentElement.classList.add('modified-row');
+                updateChangesCounter();
+                
+                // Show undo button
+                document.getElementById('undoBtn').style.display = 'inline-flex';
+            }
+            
+            // Restore cell display
+            if (field === 'debit' || field === 'credit') {
+                cell.innerHTML = newValue.toLocaleString('th-TH', {minimumFractionDigits: 2});
+            } else {
+                cell.innerHTML = newValue;
+            }
+            
+            if (editMode) {
+                cell.innerHTML += '<span class="edit-indicator">✏️</span>';
+            }
+        }
+
+        function deleteRow(rowIndex) {
+            if (!confirm('คุณแน่ใจหรือไม่ที่จะลบรายการนี้?')) return;
+            
+            // Save to history
+            changeHistory.push({
+                action: 'delete',
+                data: JSON.parse(JSON.stringify(processedData[rowIndex])),
+                index: rowIndex
+            });
+            
+            // Remove from data
+            processedData.splice(rowIndex, 1);
+            
+            // Update display
+            displayResults();
+            updateChangesCounter();
+            showMessage('🗑️ ลบรายการเรียบร้อยแล้ว', 'success');
+        }
+
+        function loadSavedMappings() {
+            const saved = localStorage.getItem('leadsheetMappings');
+            if (saved) {
+                savedMappings = JSON.parse(saved);
+                displaySavedMappings();
+            }
+        }
+
+        function displaySavedMappings() {
+            const listDiv = document.getElementById('savedMappingsList');
+            
+            if (savedMappings.length === 0) {
+                listDiv.innerHTML = '<p style="opacity: 0.9;">ยังไม่มี Mapping ที่บันทึกไว้</p>';
+                return;
+            }
+            
+            listDiv.innerHTML = savedMappings.map((mapping, index) => `
+                <div class="mapping-item">
+                    <div class="mapping-item-info">
+                        <div class="mapping-item-name">${mapping.name}</div>
+                        <div class="mapping-item-details">
+                            ${mapping.description || 'ไม่มีรายละเอียด'} | 
+                            ${Object.keys(mapping.mappings).length} รายการ | 
+                            ${new Date(mapping.savedAt).toLocaleDateString('th-TH')}
+                        </div>
+                    </div>
+                    <div class="mapping-item-actions">
+                        <button onclick="loadMapping(${index})" class="mapping-action-btn mapping-load-btn">
+                            โหลด
+                        </button>
+                        <button onclick="deleteMapping(${index})" class="mapping-action-btn mapping-delete-btn">
+                            ลบ
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function saveCurrentMapping() {
+            // Collect current custom mappings
+            const currentMappings = {};
+            
+            processedData.forEach(item => {
+                // Save mapping for each unique account name
+                const key = item.accountName.toLowerCase();
+                if (!currentMappings[key]) {
+                    currentMappings[key] = {
+                        leadsheetGroup: item.leadsheetGroup,
+                        subGroup: item.subGroup,
+                        accountCode: item.accountCode
+                    };
+                }
+            });
+            
+            // Show modal
+            document.getElementById('saveMappingModal').style.display = 'block';
+            customMappings = currentMappings;
+        }
+
+        function closeSaveModal() {
+            document.getElementById('saveMappingModal').style.display = 'none';
+            document.getElementById('mappingNameInput').value = '';
+            document.getElementById('mappingDescInput').value = '';
+        }
+
+        function confirmSaveMapping() {
+            const name = document.getElementById('mappingNameInput').value.trim();
+            const description = document.getElementById('mappingDescInput').value.trim();
+            
+            if (!name) {
+                alert('กรุณาใส่ชื่อ Mapping');
+                return;
+            }
+            
+            const mappingData = {
+                name: name,
+                description: description,
+                mappings: customMappings,
+                savedAt: new Date().toISOString()
+            };
+            
+            savedMappings.push(mappingData);
+            localStorage.setItem('leadsheetMappings', JSON.stringify(savedMappings));
+            
+            displaySavedMappings();
+            closeSaveModal();
+            showMessage('✅ บันทึก Mapping เรียบร้อยแล้ว', 'success');
+        }
+
+        function loadMapping(index) {
+            const mapping = savedMappings[index];
+            if (!mapping) return;
+            
+            // Apply the mapping to current data
+            processedData.forEach(item => {
+                const key = item.accountName.toLowerCase();
+                if (mapping.mappings[key]) {
+                    item.leadsheetGroup = mapping.mappings[key].leadsheetGroup;
+                    item.subGroup = mapping.mappings[key].subGroup;
+                }
+            });
+            
+            // Clear unclassified accounts
+            unclassifiedAccounts = [];
+            
+            // Refresh display
+            displayResults();
+            showMessage(`✅ โหลด Mapping "${mapping.name}" เรียบร้อยแล้ว`, 'success');
+        }
+
+        function deleteMapping(index) {
+            if (confirm('คุณแน่ใจหรือไม่ที่จะลบ Mapping นี้?')) {
+                savedMappings.splice(index, 1);
+                localStorage.setItem('leadsheetMappings', JSON.stringify(savedMappings));
+                displaySavedMappings();
+                showMessage('✅ ลบ Mapping เรียบร้อยแล้ว', 'success');
+            }
+        }
+
+        function exportAllMappings() {
+            if (savedMappings.length === 0) {
+                alert('ไม่มี Mapping ที่จะส่งออก');
+                return;
+            }
+            
+            const dataStr = JSON.stringify(savedMappings, null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `leadsheet_mappings_${new Date().getTime()}.json`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            
+            showMessage('✅ ส่งออก Mapping ทั้งหมดเรียบร้อยแล้ว', 'success');
+        }
+
+        function importMapping(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const imported = JSON.parse(e.target.result);
+                    
+                    // Validate the structure
+                    if (!Array.isArray(imported)) {
+                        throw new Error('รูปแบบไฟล์ไม่ถูกต้อง');
+                    }
+                    
+                    // Merge with existing mappings
+                    imported.forEach(mapping => {
+                        // Check if mapping with same name exists
+                        const existingIndex = savedMappings.findIndex(m => m.name === mapping.name);
+                        if (existingIndex >= 0) {
+                            if (confirm(`Mapping "${mapping.name}" มีอยู่แล้ว ต้องการแทนที่หรือไม่?`)) {
+                                savedMappings[existingIndex] = mapping;
+                            }
+                        } else {
+                            savedMappings.push(mapping);
+                        }
+                    });
+                    
+                    localStorage.setItem('leadsheetMappings', JSON.stringify(savedMappings));
+                    displaySavedMappings();
+                    showMessage('✅ นำเข้า Mapping เรียบร้อยแล้ว', 'success');
+                    
+                } catch (error) {
+                    alert('ไม่สามารถอ่านไฟล์ได้: ' + error.message);
+                }
+            };
+            reader.readAsText(file);
+            
+            // Reset file input
+            event.target.value = '';
+        }
+
+        function clearAllMappings() {
+            if (confirm('คุณแน่ใจหรือไม่ที่จะลบ Mapping ทั้งหมด? การกระทำนี้ไม่สามารถย้อนกลับได้')) {
+                savedMappings = [];
+                localStorage.removeItem('leadsheetMappings');
+                displaySavedMappings();
+                showMessage('✅ ลบ Mapping ทั้งหมดเรียบร้อยแล้ว', 'success');
+            }
+        }
+
+        // Also update the applyManualClassification function to support auto-learning
+        function applyManualClassification() {
+            const accountCode = document.getElementById('manualAccountSelect').value;
+            const group = document.getElementById('manualGroupSelect').value;
+            const subGroup = document.getElementById('manualSubGroupSelect').value;
+            
+            if (!accountCode || !group || !subGroup) {
+                alert('กรุณาเลือกข้อมูลให้ครบถ้วน');
+                return;
+            }
+            
+            // Update the classification
+            const index = processedData.findIndex(item => item.accountCode === accountCode);
+            if (index !== -1) {
+                processedData[index].leadsheetGroup = group;
+                processedData[index].subGroup = subGroup;
+                
+                // Auto-learn: save this mapping for future use
+                const accountName = processedData[index].accountName.toLowerCase();
+                if (!customMappings[accountName]) {
+                    customMappings[accountName] = {
+                        leadsheetGroup: group,
+                        subGroup: subGroup
+                    };
+                }
+                
+                // Update unclassified list
+                unclassifiedAccounts = processedData.filter(item => 
+                    item.leadsheetGroup === 'อื่นๆ' || item.subGroup === 'ไม่ระบุ'
+                );
+                
+                // Refresh display
+                displayResults();
+                
+                // Show success message
+                showMessage('✅ จัดกลุ่มบัญชีเรียบร้อยแล้ว', 'success');
+            }
+        }
+
+        // Update applyAllSuggestions to also save to customMappings
+        function applyAllSuggestions() {
+            Object.keys(aiSuggestions).forEach(accountCode => {
+                const suggestion = aiSuggestions[accountCode];
+                const index = processedData.findIndex(item => item.accountCode === accountCode);
+                
+                if (index !== -1) {
+                    processedData[index].leadsheetGroup = suggestion.group;
+                    processedData[index].subGroup = suggestion.subGroup;
+                    
+                    // Auto-learn: save this mapping
+                    const accountName = processedData[index].accountName.toLowerCase();
+                    if (!customMappings[accountName]) {
+                        customMappings[accountName] = {
+                            leadsheetGroup: suggestion.group,
+                            subGroup: suggestion.subGroup
+                        };
+                    }
+                }
+            });
+            
+            // Clear unclassified accounts
+            unclassifiedAccounts = [];
+            aiSuggestions = {};
+            
+            // Refresh display
+            displayResults();
+            
+            // Show success message
+            showMessage('✅ นำคำแนะนำจาก AI ไปใช้เรียบร้อยแล้ว', 'success');
+        }
+
+        // Modal close on click outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('saveMappingModal');
+            if (event.target == modal) {
+                closeSaveModal();
+            }
+        }
+
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                document.getElementById('processBtn').disabled = false;
+                const label = document.querySelector('.file-input-label');
+                label.textContent = `✅ เลือกไฟล์แล้ว: ${file.name}`;
+            }
+        });
+
+        document.getElementById('processBtn').addEventListener('click', function() {
+            const fileInput = document.getElementById('fileInput');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                alert('กรุณาเลือกไฟล์ก่อน');
+                return;
+            }
+
+            const reader = new FileReader();
+            const fileName = file.name.toLowerCase();
+
+            if (fileName.endsWith('.csv') || fileName.endsWith('.txt')) {
+                reader.onload = function(e) {
+                    const text = e.target.result;
+                    parseCSV(text);
+                };
+                reader.readAsText(file, 'UTF-8');
+            } else if (fileName.endsWith('.xlsx') || fileName.endsWith('.xls')) {
+                reader.onload = function(e) {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
+                    parseExcel(jsonData);
+                };
+                reader.readAsArrayBuffer(file);
+            }
+        });
+
+        function parseCSV(text) {
+            Papa.parse(text, {
+                header: true,
+                dynamicTyping: true,
+                skipEmptyLines: true,
+                complete: function(results) {
+                    uploadedData = results.data;
+                    processData();
+                }
+            });
+        }
+
+        function parseExcel(data) {
+            if (data.length < 2) {
+                alert('ไฟล์ไม่มีข้อมูล');
+                return;
+            }
+
+            const headers = data[0];
+            uploadedData = [];
+
+            for (let i = 1; i < data.length; i++) {
+                const row = {};
+                headers.forEach((header, index) => {
+                    row[header] = data[i][index] || '';
+                });
+                uploadedData.push(row);
+            }
+
+            processData();
+        }
+
+        function generateAccountCode(accountName, leadsheetGroup, subGroup) {
+            // First, check if there's a predefined code for this subgroup
+            const normalizedName = accountName.toLowerCase();
+            
+            // Search in accountCodeMapping
+            for (const [key, code] of Object.entries(accountCodeMapping)) {
+                if (normalizedName.includes(key.toLowerCase()) || subGroup === key) {
+                    return code;
+                }
+            }
+            
+            // If no exact match, generate based on account type
+            let prefix = '9'; // Default for uncategorized
+            
+            // Determine prefix based on leadsheet group
+            if (leadsheetGroup.includes('เงินสด') || leadsheetGroup.includes('เงินลงทุน') || 
+                leadsheetGroup.includes('ลูกหนี้') || leadsheetGroup.includes('สินค้า') || 
+                leadsheetGroup.includes('สินทรัพย์') || leadsheetGroup.includes('ที่ดิน')) {
+                prefix = '1'; // Assets
+            } else if (leadsheetGroup.includes('เจ้าหนี้') || leadsheetGroup.includes('หนี้สิน') || 
+                       leadsheetGroup.includes('เงินกู้') || leadsheetGroup.includes('ภาษี')) {
+                prefix = '2'; // Liabilities
+            } else if (leadsheetGroup.includes('ทุน') || leadsheetGroup.includes('หุ้น') || 
+                       leadsheetGroup.includes('กำไร') || leadsheetGroup.includes('ส่วนเกิน')) {
+                prefix = '3'; // Equity
+            } else if (leadsheetGroup.includes('รายได้')) {
+                prefix = '4'; // Revenue
+            } else if (leadsheetGroup.includes('ต้นทุน') || leadsheetGroup.includes('ค่าใช้จ่าย') || 
+                       leadsheetGroup.includes('เงินเดือน') || leadsheetGroup.includes('ภาษีเงินได้')) {
+                prefix = '5'; // Expenses
+            }
+            
+            // Generate unique code - ensure codeCounters[prefix] exists and is a valid number
+            if (!codeCounters[prefix] || isNaN(codeCounters[prefix])) {
+                codeCounters[prefix] = prefix === '1' ? 1800 : 
+                                       prefix === '2' ? 2700 : 
+                                       prefix === '3' ? 3500 : 
+                                       prefix === '4' ? 4500 : 
+                                       prefix === '5' ? 5800 : 9000;
+            }
+            
+            codeCounters[prefix]++;
+            return prefix + String(codeCounters[prefix]).padStart(3, '0');
+        }
+
+        function detectAccountType(accountCode, accountName) {
+            // Normalize the input
+            const code = String(accountCode || '').toLowerCase();
+            const name = String(accountName || '').toLowerCase();
+            
+            // Check if already classified in customMappings
+            if (customMappings[name]) {
+                return {
+                    leadsheetGroup: customMappings[name].leadsheetGroup,
+                    subGroup: customMappings[name].subGroup
+                };
+            }
+            
+            // Find best matching leadsheet group
+            for (const [groupName, groupData] of Object.entries(leadsheetMappings)) {
+                // Check keywords
+                for (const keyword of groupData.keywords) {
+                    if (name.includes(keyword.toLowerCase()) || code.includes(keyword.toLowerCase())) {
+                        // Find best matching subgroup
+                        for (const [subGroupName, subKeywords] of Object.entries(groupData.subGroups)) {
+                            for (const subKeyword of subKeywords) {
+                                if (name.includes(subKeyword.toLowerCase())) {
+                                    return {
+                                        leadsheetGroup: groupName,
+                                        subGroup: subGroupName
+                                    };
+                                }
+                            }
+                        }
+                        // If no subgroup matched, return the first one as default
+                        const defaultSubGroup = Object.keys(groupData.subGroups)[0];
+                        return {
+                            leadsheetGroup: groupName,
+                            subGroup: defaultSubGroup
+                        };
+                    }
+                }
+            }
+
+            // Default categorization based on account code patterns
+            if (code.startsWith('1')) {
+                return { leadsheetGroup: 'สินทรัพย์หมุนเวียนอื่น', subGroup: 'สินทรัพย์หมุนเวียนอื่น ๆ' };
+            } else if (code.startsWith('2')) {
+                return { leadsheetGroup: 'หนี้สินหมุนเวียนอื่น', subGroup: 'หนี้สินหมุนเวียนอื่นๆ' };
+            } else if (code.startsWith('3')) {
+                return { leadsheetGroup: 'ทุนชำระแล้ว', subGroup: 'หุ้นสามัญ' };
+            } else if (code.startsWith('4')) {
+                return { leadsheetGroup: 'รายได้อื่น', subGroup: 'รายได้อื่น' };
+            } else if (code.startsWith('5')) {
+                return { leadsheetGroup: 'ค่าใช้จ่ายในการบริหาร', subGroup: 'ค่าใช้จ่ายอื่น' };
+            }
+
+            return { leadsheetGroup: 'อื่นๆ', subGroup: 'ไม่ระบุ' };
+        }
+
+        function processData() {
+            processedData = [];
+            unclassifiedAccounts = [];
+            
+            // Get column names (handle various formats)
+            const possibleCodeColumns = ['รหัสบัญชี', 'รหัส', 'Account Code', 'Code', 'account_code'];
+            const possibleNameColumns = ['ชื่อบัญชี', 'ชื่อ', 'Account Name', 'Name', 'account_name'];
+            const possibleDebitColumns = ['ยอดเดบิต', 'เดบิต', 'Debit', 'DR', 'debit'];
+            const possibleCreditColumns = ['ยอดเครดิต', 'เครดิต', 'Credit', 'CR', 'credit'];
+
+            uploadedData.forEach(row => {
+                // Find the actual column names
+                let accountCode = '';
+                let accountName = '';
+                let debit = 0;
+                let credit = 0;
+
+                // Extract account code
+                for (const col of possibleCodeColumns) {
+                    if (row[col] !== undefined) {
+                        accountCode = row[col];
+                        break;
+                    }
+                }
+
+                // Extract account name
+                for (const col of possibleNameColumns) {
+                    if (row[col] !== undefined) {
+                        accountName = row[col];
+                        break;
+                    }
+                }
+
+                // Extract debit
+                for (const col of possibleDebitColumns) {
+                    if (row[col] !== undefined) {
+                        debit = parseFloat(row[col]) || 0;
+                        break;
+                    }
+                }
+
+                // Extract credit
+                for (const col of possibleCreditColumns) {
+                    if (row[col] !== undefined) {
+                        credit = parseFloat(row[col]) || 0;
+                        break;
+                    }
+                }
+
+                // If no standard columns found, try to use first 4 columns
+                if (!accountCode && !accountName) {
+                    const keys = Object.keys(row);
+                    if (keys.length >= 2) {
+                        accountCode = row[keys[0]] || '';
+                        accountName = row[keys[1]] || '';
+                        if (keys.length >= 3) debit = parseFloat(row[keys[2]]) || 0;
+                        if (keys.length >= 4) credit = parseFloat(row[keys[3]]) || 0;
+                    }
+                }
+
+                if (accountCode || accountName) {
+                    const classification = detectAccountType(accountCode, accountName);
+                    
+                    // Generate account code if missing
+                    let finalAccountCode = accountCode;
+                    if (!accountCode || accountCode === '') {
+                        finalAccountCode = generateAccountCode(accountName, classification.leadsheetGroup, classification.subGroup);
+                    }
+                    
+                    const processedItem = {
+                        accountCode: finalAccountCode,
+                        accountName: accountName,
+                        leadsheetGroup: classification.leadsheetGroup,
+                        subGroup: classification.subGroup,
+                        debit: debit,
+                        credit: credit
+                    };
+                    
+                    processedData.push(processedItem);
+                    
+                    // Track unclassified accounts
+                    if (classification.leadsheetGroup === 'อื่นๆ' || classification.subGroup === 'ไม่ระบุ') {
+                        unclassifiedAccounts.push(processedItem);
+                    }
+                }
+            });
+
+            displayResults();
+        }
+
+        function displayResults() {
+            const resultsSection = document.getElementById('resultsSection');
+            const tableBody = document.getElementById('tableBody');
+            const statsCards = document.getElementById('statsCards');
+            const aiHelperSection = document.getElementById('aiHelperSection');
+
+            // Clear previous results
+            tableBody.innerHTML = '';
+            statsCards.innerHTML = '';
+
+            // Calculate statistics
+            const groupCounts = {};
+            let totalDebit = 0;
+            let totalCredit = 0;
+
+            processedData.forEach(item => {
+                groupCounts[item.leadsheetGroup] = (groupCounts[item.leadsheetGroup] || 0) + 1;
+                totalDebit += item.debit;
+                totalCredit += item.credit;
+            });
+
+            // Display statistics
+            statsCards.innerHTML = `
+                <div class="stat-card">
+                    <h4>จำนวนบัญชีทั้งหมด</h4>
+                    <div class="number">${processedData.length}</div>
+                </div>
+                <div class="stat-card">
+                    <h4>จำนวนกลุ่ม Leadsheet</h4>
+                    <div class="number">${Object.keys(groupCounts).length}</div>
+                </div>
+                <div class="stat-card">
+                    <h4>ยอดเดบิตรวม</h4>
+                    <div class="number">${totalDebit.toLocaleString('th-TH', {minimumFractionDigits: 2})}</div>
+                </div>
+                <div class="stat-card">
+                    <h4>ยอดเครดิตรวม</h4>
+                    <div class="number">${totalCredit.toLocaleString('th-TH', {minimumFractionDigits: 2})}</div>
+                </div>
+            `;
+
+            // Display table data
+            processedData.forEach((item, index) => {
+                const row = document.createElement('tr');
+                
+                // Add modified-row class if this row was edited
+                if (modifiedRows.has(index)) {
+                    row.classList.add('modified-row');
+                }
+                
+                // Highlight unclassified accounts
+                if (item.leadsheetGroup === 'อื่นๆ' || item.subGroup === 'ไม่ระบุ') {
+                    row.style.backgroundColor = '#fff3cd';
+                }
+                
+                // Action buttons column
+                let actionCell = '<td>';
+                if (editMode) {
+                    actionCell += `
+                        <div class="action-buttons">
+                            <button onclick="deleteRow(${index})" class="delete-row-btn" title="ลบรายการ">🗑️</button>
+                        </div>
+                    `;
+                } else {
+                    actionCell += '-';
+                }
+                actionCell += '</td>';
+                
+                row.innerHTML = actionCell + `
+                    <td class="${editMode ? 'editable-cell' : ''}" onclick="${editMode ? `makeEditable(this, ${index}, 'accountCode')` : ''}">
+                        ${item.accountCode}
+                        ${editMode ? '<span class="edit-indicator">✏️</span>' : ''}
+                    </td>
+                    <td class="${editMode ? 'editable-cell' : ''}" onclick="${editMode ? `makeEditable(this, ${index}, 'accountName')` : ''}">
+                        ${item.accountName}
+                        ${editMode ? '<span class="edit-indicator">✏️</span>' : ''}
+                    </td>
+                    <td class="${editMode ? 'editable-cell' : ''}" onclick="${editMode ? `makeEditable(this, ${index}, 'leadsheetGroup')` : ''}">
+                        ${item.leadsheetGroup}
+                        ${editMode ? '<span class="edit-indicator">✏️</span>' : ''}
+                    </td>
+                    <td class="${editMode ? 'editable-cell' : ''}" onclick="${editMode ? `makeEditable(this, ${index}, 'subGroup')` : ''}">
+                        ${item.subGroup}
+                        ${editMode ? '<span class="edit-indicator">✏️</span>' : ''}
+                    </td>
+                    <td class="${editMode ? 'editable-cell' : ''}" style="text-align: right;" onclick="${editMode ? `makeEditable(this, ${index}, 'debit')` : ''}">
+                        ${item.debit.toLocaleString('th-TH', {minimumFractionDigits: 2})}
+                        ${editMode ? '<span class="edit-indicator">✏️</span>' : ''}
+                    </td>
+                    <td class="${editMode ? 'editable-cell' : ''}" style="text-align: right;" onclick="${editMode ? `makeEditable(this, ${index}, 'credit')` : ''}">
+                        ${item.credit.toLocaleString('th-TH', {minimumFractionDigits: 2})}
+                        ${editMode ? '<span class="edit-indicator">✏️</span>' : ''}
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+
+            // Update unclassified accounts list
+            unclassifiedAccounts = processedData.filter(item => 
+                item.leadsheetGroup === 'อื่นๆ' || item.subGroup === 'ไม่ระบุ'
+            );
+
+            // Show AI helper if there are unclassified accounts
+            if (unclassifiedAccounts.length > 0) {
+                aiHelperSection.style.display = 'block';
+                displayUnclassifiedAccounts();
+                setupManualClassification();
+            } else {
+                aiHelperSection.style.display = 'none';
+            }
+
+            // Update AI Copilot status
+            updateCopilotStatus();
+
+            // Show results section
+            resultsSection.classList.add('active');
+        }
+
+        function displayUnclassifiedAccounts() {
+            const unclassifiedList = document.getElementById('unclassifiedList');
+            unclassifiedList.innerHTML = `
+                <p style="margin-bottom: 10px;">พบบัญชีที่ไม่สามารถจัดกลุ่มได้ ${unclassifiedAccounts.length} รายการ:</p>
+                ${unclassifiedAccounts.map(acc => `
+                    <div class="unclassified-item">
+                        <span>${acc.accountCode} - ${acc.accountName}</span>
+                        <span>${(acc.debit - acc.credit).toLocaleString('th-TH', {minimumFractionDigits: 2})}</span>
+                    </div>
+                `).join('')}
+            `;
+        }
+
+        function setupManualClassification() {
+            const accountSelect = document.getElementById('manualAccountSelect');
+            const groupSelect = document.getElementById('manualGroupSelect');
+            
+            // Populate account select
+            accountSelect.innerHTML = '<option value="">-- เลือกบัญชี --</option>';
+            unclassifiedAccounts.forEach(acc => {
+                const option = document.createElement('option');
+                option.value = acc.accountCode;
+                option.textContent = `${acc.accountCode} - ${acc.accountName}`;
+                accountSelect.appendChild(option);
+            });
+            
+            // Populate group select
+            groupSelect.innerHTML = '<option value="">-- เลือกกลุ่ม --</option>';
+            Object.keys(leadsheetMappings).forEach(group => {
+                const option = document.createElement('option');
+                option.value = group;
+                option.textContent = group;
+                groupSelect.appendChild(option);
+            });
+        }
+
+        function updateSubGroupOptions() {
+            const groupSelect = document.getElementById('manualGroupSelect');
+            const subGroupSelect = document.getElementById('manualSubGroupSelect');
+            const selectedGroup = groupSelect.value;
+            
+            subGroupSelect.innerHTML = '<option value="">-- เลือกกลุ่มย่อย --</option>';
+            
+            if (selectedGroup && leadsheetMappings[selectedGroup]) {
+                Object.keys(leadsheetMappings[selectedGroup].subGroups).forEach(subGroup => {
+                    const option = document.createElement('option');
+                    option.value = subGroup;
+                    option.textContent = subGroup;
+                    subGroupSelect.appendChild(option);
+                });
+            }
+        }
+
+        function applyManualClassification() {
+            const accountCode = document.getElementById('manualAccountSelect').value;
+            const group = document.getElementById('manualGroupSelect').value;
+            const subGroup = document.getElementById('manualSubGroupSelect').value;
+            
+            if (!accountCode || !group || !subGroup) {
+                alert('กรุณาเลือกข้อมูลให้ครบถ้วน');
+                return;
+            }
+            
+            // Update the classification
+            const index = processedData.findIndex(item => item.accountCode === accountCode);
+            if (index !== -1) {
+                processedData[index].leadsheetGroup = group;
+                processedData[index].subGroup = subGroup;
+                
+                // Remove from unclassified
+                unclassifiedAccounts = unclassifiedAccounts.filter(acc => acc.accountCode !== accountCode);
+                
+                // Refresh display
+                displayResults();
+                
+                // Show success message
+                showMessage('✅ จัดกลุ่มบัญชีเรียบร้อยแล้ว', 'success');
+            }
+        }
+
+        function getAISuggestions() {
+            const aiSuggestBtn = document.getElementById('aiSuggestBtn');
+            const aiSuggestionResult = document.getElementById('aiSuggestionResult');
+            
+            aiSuggestBtn.disabled = true;
+            aiSuggestBtn.classList.add('loading');
+            aiSuggestBtn.innerHTML = '<span>⏳</span><span>กำลังวิเคราะห์...</span>';
+            
+            // Simulate AI analysis (in real implementation, this would call an API)
+            setTimeout(() => {
+                const suggestions = analyzeWithAI(unclassifiedAccounts);
+                displayAISuggestions(suggestions);
+                
+                aiSuggestBtn.disabled = false;
+                aiSuggestBtn.classList.remove('loading');
+                aiSuggestBtn.innerHTML = '<span>✨</span><span>ขอคำแนะนำจาก AI</span>';
+                aiSuggestionResult.style.display = 'block';
+            }, 2000);
+        }
+
+        function analyzeWithAI(accounts) {
+            const suggestions = {};
+            
+            accounts.forEach(acc => {
+                const name = acc.accountName.toLowerCase();
+                const code = acc.accountCode;
+                
+                // AI-like pattern matching with more sophisticated rules
+                if (name.includes('ค่าประกัน') || name.includes('ประกัน') || name.includes('insurance')) {
+                    suggestions[acc.accountCode] = {
+                        group: 'สินทรัพย์หมุนเวียนอื่น',
+                        subGroup: 'ค่าใช้จ่ายจ่ายล่วงหน้า',
+                        confidence: 85
+                    };
+                } else if (name.includes('ภาษีเจ้าหนี้') || name.includes('ภาษีขาย')) {
+                    suggestions[acc.accountCode] = {
+                        group: 'หนี้สินหมุนเวียนอื่น',
+                        subGroup: 'ภาษีค้างจ่าย',
+                        confidence: 90
+                    };
+                } else if (name.includes('ภาษีลูกหนี้') || name.includes('ภาษีซื้อ')) {
+                    suggestions[acc.accountCode] = {
+                        group: 'สินทรัพย์หมุนเวียนอื่น',
+                        subGroup: 'สินทรัพย์หมุนเวียนอื่น ๆ',
+                        confidence: 85
+                    };
+                } else if (name.includes('เงินประกัน') || name.includes('deposit')) {
+                    suggestions[acc.accountCode] = {
+                        group: 'สินทรัพย์ไม่หมุนเวียนอื่น',
+                        subGroup: 'เงินมัดจำระยะยาว',
+                        confidence: 80
+                    };
+                } else if (name.includes('รายได้') && name.includes('รับล่วงหน้า')) {
+                    suggestions[acc.accountCode] = {
+                        group: 'หนี้สินหมุนเวียนอื่น',
+                        subGroup: 'หนี้สินหมุนเวียนอื่นๆ',
+                        confidence: 90
+                    };
+                } else if (name.includes('ค่าเช่า') || name.includes('rent')) {
+                    if (acc.debit > 0) {
+                        suggestions[acc.accountCode] = {
+                            group: 'ค่าใช้จ่ายในการบริหาร',
+                            subGroup: 'ค่าใช้จ่ายสำนักงาน',
+                            confidence: 85
+                        };
+                    } else {
+                        suggestions[acc.accountCode] = {
+                            group: 'หนี้สินหมุนเวียนอื่น',
+                            subGroup: 'ค่าใช้จ่ายค้างจ่าย',
+                            confidence: 80
+                        };
+                    }
+                } else if (name.includes('เงินยืม')) {
+                    suggestions[acc.accountCode] = {
+                        group: 'สินทรัพย์หมุนเวียนอื่น',
+                        subGroup: 'สินทรัพย์หมุนเวียนอื่น ๆ',
+                        confidence: 75
+                    };
+                } else if (name.includes('ส่วนลด')) {
+                    if (acc.debit > 0) {
+                        suggestions[acc.accountCode] = {
+                            group: 'ค่าใช้จ่ายในการขาย',
+                            subGroup: 'ค่าใช้จ่ายในการขายอื่น ๆ',
+                            confidence: 70
+                        };
+                    } else {
+                        suggestions[acc.accountCode] = {
+                            group: 'รายได้อื่น',
+                            subGroup: 'รายได้อื่น',
+                            confidence: 70
+                        };
+                    }
+                } else if (name.includes('ดอกเบี้ย')) {
+                    if (acc.debit > 0) {
+                        suggestions[acc.accountCode] = {
+                            group: 'ค่าใช้จ่ายการเงิน',
+                            subGroup: 'ดอกเบี้ยเงินกู้ยืมระยะสั้น',
+                            confidence: 80
+                        };
+                    } else {
+                        suggestions[acc.accountCode] = {
+                            group: 'รายได้ทางการเงิน',
+                            subGroup: 'ดอกเบี้ยเงินฝาก',
+                            confidence: 80
+                        };
+                    }
+                } else if (name.includes('ภาษี') && !name.includes('ภาษีเงินได้')) {
+                    suggestions[acc.accountCode] = {
+                        group: 'สินทรัพย์หมุนเวียนอื่น',
+                        subGroup: 'สินทรัพย์หมุนเวียนอื่น ๆ',
+                        confidence: 70
+                    };
+                } else {
+                    // Default suggestion based on account code pattern
+                    if (code.startsWith('1')) {
+                        suggestions[acc.accountCode] = {
+                            group: 'สินทรัพย์หมุนเวียนอื่น',
+                            subGroup: 'สินทรัพย์หมุนเวียนอื่น ๆ',
+                            confidence: 60
+                        };
+                    } else if (code.startsWith('2')) {
+                        suggestions[acc.accountCode] = {
+                            group: 'หนี้สินหมุนเวียนอื่น',
+                            subGroup: 'หนี้สินหมุนเวียนอื่นๆ',
+                            confidence: 60
+                        };
+                    } else if (code.startsWith('4')) {
+                        suggestions[acc.accountCode] = {
+                            group: 'รายได้อื่น',
+                            subGroup: 'รายได้อื่น',
+                            confidence: 65
+                        };
+                    } else if (code.startsWith('5')) {
+                        suggestions[acc.accountCode] = {
+                            group: 'ค่าใช้จ่ายในการบริหาร',
+                            subGroup: 'ค่าใช้จ่ายอื่น',
+                            confidence: 65
+                        };
+                    } else if (code.startsWith('9')) {
+                        // For accounts starting with 9, try to classify based on name patterns
+                        if (name.includes('สินทรัพย์') || name.includes('ลูกหนี้')) {
+                            suggestions[acc.accountCode] = {
+                                group: 'สินทรัพย์หมุนเวียนอื่น',
+                                subGroup: 'สินทรัพย์หมุนเวียนอื่น ๆ',
+                                confidence: 70
+                            };
+                        } else if (name.includes('หนี้') || name.includes('เจ้าหนี้') || name.includes('ค้างจ่าย')) {
+                            suggestions[acc.accountCode] = {
+                                group: 'หนี้สินหมุนเวียนอื่น',
+                                subGroup: 'หนี้สินหมุนเวียนอื่นๆ',
+                                confidence: 70
+                            };
+                        } else if (acc.debit > 0) {
+                            suggestions[acc.accountCode] = {
+                                group: 'ค่าใช้จ่ายในการบริหาร',
+                                subGroup: 'ค่าใช้จ่ายอื่น',
+                                confidence: 60
+                            };
+                        } else if (acc.credit > 0) {
+                            suggestions[acc.accountCode] = {
+                                group: 'รายได้อื่น',
+                                subGroup: 'รายได้อื่น',
+                                confidence: 60
+                            };
+                        }
+                    }
+                }
+            });
+            
+            aiSuggestions = suggestions;
+            return suggestions;
+        }
+
+        function displayAISuggestions(suggestions) {
+            const resultDiv = document.getElementById('aiSuggestionResult');
+            
+            if (Object.keys(suggestions).length === 0) {
+                resultDiv.innerHTML = '<p>ไม่สามารถให้คำแนะนำได้ กรุณาจัดกลุ่มด้วยตนเอง</p>';
+                return;
+            }
+            
+            let html = '<h4>📊 คำแนะนำจาก AI:</h4>';
+            html += '<div style="margin: 15px 0;">';
+            
+            unclassifiedAccounts.forEach(acc => {
+                const suggestion = suggestions[acc.accountCode];
+                if (suggestion) {
+                    html += `
+                        <div class="suggestion-item">
+                            <div><strong>${acc.accountCode}</strong> - ${acc.accountName}</div>
+                            <div>${suggestion.group}</div>
+                            <div>${suggestion.subGroup}</div>
+                            <div style="text-align: center;">
+                                <span style="color: ${suggestion.confidence > 80 ? '#28a745' : suggestion.confidence > 60 ? '#ffc107' : '#dc3545'};">
+                                    ${suggestion.confidence}%
+                                </span>
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+            
+            html += '</div>';
+            html += '<button onclick="applyAllSuggestions()" class="apply-suggestions-btn">✅ ใช้คำแนะนำทั้งหมด</button>';
+            
+            resultDiv.innerHTML = html;
+        }
+
+        function applyAllSuggestions() {
+            Object.keys(aiSuggestions).forEach(accountCode => {
+                const suggestion = aiSuggestions[accountCode];
+                const index = processedData.findIndex(item => item.accountCode === accountCode);
+                
+                if (index !== -1) {
+                    processedData[index].leadsheetGroup = suggestion.group;
+                    processedData[index].subGroup = suggestion.subGroup;
+                }
+            });
+            
+            // Clear unclassified accounts
+            unclassifiedAccounts = [];
+            aiSuggestions = {};
+            
+            // Refresh display
+            displayResults();
+            
+            // Show success message
+            showMessage('✅ นำคำแนะนำจาก AI ไปใช้เรียบร้อยแล้ว', 'success');
+        }
+
+        function showMessage(message, type) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = type === 'success' ? 'success-message' : 'error-message';
+            messageDiv.textContent = message;
+            messageDiv.style.position = 'fixed';
+            messageDiv.style.top = '20px';
+            messageDiv.style.right = '20px';
+            messageDiv.style.zIndex = '9999';
+            messageDiv.style.minWidth = '300px';
+            
+            document.body.appendChild(messageDiv);
+            
+            setTimeout(() => {
+                messageDiv.style.transition = 'opacity 0.5s';
+                messageDiv.style.opacity = '0';
+                setTimeout(() => {
+                    document.body.removeChild(messageDiv);
+                }, 500);
+            }, 3000);
+        }
+
+        function forceRefreshTable() {
+            // Force complete refresh of the table
+            displayResults();
+            
+            // Show loading animation
+            const tables = document.getElementById('resultsTable');
+            tables.style.opacity = '0.5';
+            
+            setTimeout(() => {
+                tables.style.opacity = '1';
+                showMessage('✅ รีเฟรชตารางเรียบร้อยแล้ว', 'success');
+            }, 300);
+        }
+
+        function downloadCSV() {
+            const csv = Papa.unparse(processedData);
+            const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', 'leadsheet_grouped_' + new Date().getTime() + '.csv');
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function downloadExcel() {
+            const ws = XLSX.utils.json_to_sheet(processedData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Leadsheet Groups');
+            XLSX.writeFile(wb, 'leadsheet_grouped_' + new Date().getTime() + '.xlsx');
+        }
+    </script>
+</body>
+</html>
